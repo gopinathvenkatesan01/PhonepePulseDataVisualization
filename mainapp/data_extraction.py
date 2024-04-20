@@ -172,6 +172,8 @@ def arrgregated_usr_st():
                 qtr_path = path+quarter
                 D = open(qtr_path,'r')
                 data =json.load(D)
+                user_count = data['data']['aggregated']['registeredUsers']
+                app_open = data['data']['aggregated']['appOpens']
                 try:  
                     for value in  data['data']['usersByDevice']:
                         Brand = value['brand']
@@ -183,8 +185,8 @@ def arrgregated_usr_st():
                         state_user['Year'].append(year)
                         state_user['State'].append(state)
                         state_user['Quarter'].append(int(quarter.strip('.json')))
-                        state_user['Users_count'] = data['data']['aggregated']['registeredUsers']
-                        state_user['App_opening'] = data['data']['aggregated']['appOpens']
+                        state_user['Users_count'].append(user_count)
+                        state_user['App_opening'].append(app_open)
                 except:
                     pass        
 
@@ -192,6 +194,7 @@ def arrgregated_usr_st():
     st_user_df['State'] = st_user_df['State'].str.title()
     return st_user_df
 
+@st.cache_data
 def map_user_st():
     map_st_user_path='D:/Learning/Projects/PhonepePulseDataVisualization/src/phonepeData/data/map/user/hover/country/india/state/'
 
@@ -267,3 +270,55 @@ def map_transcation_st():
     map_st_transcation_df['State'] = map_st_transcation_df['State'].str.title()
     
     return map_st_transcation_df
+
+@st.cache_data
+def top_usr_st():
+    top_state_user_path = 'D:/Learning/Projects/PhonepePulseDataVisualization/src/phonepeData/data/top/user/country/india/state/'
+
+    top_usr_by_st_pincode ={'State': [], 'Year': [], 'Quarter': [], 'Pincode': [], 'Count': []}
+    top_usr_by_st_district ={'State': [], 'Year': [], 'Quarter': [], 'District': [], 'Count': []}
+
+    state_list = os.listdir(top_state_user_path)
+
+    for state in state_list:
+        state_path = top_state_user_path+state+'/'
+        year_list = os.listdir(state_path)
+        for year in year_list:
+            path = state_path+year+'/'
+            quarter_list = os.listdir(path)
+            for quarter in quarter_list:
+                qtr_path = path+quarter
+                D = open(qtr_path,'r')
+                data =json.load(D)
+
+                for value in  data['data']['pincodes']:
+                    Name = value['name']
+                    count = value['registeredUsers']
+                    top_usr_by_st_pincode['Count'].append(count)
+                    top_usr_by_st_pincode['Pincode'].append(Name)
+                    top_usr_by_st_pincode['State'].append(state)
+                    top_usr_by_st_pincode['Year'].append(year)
+                    top_usr_by_st_pincode['Quarter'].append(int(quarter.strip('.json')))
+
+                for value in data['data']['districts']:
+                    Name = value['name']
+                    count = value['registeredUsers']
+                    top_usr_by_st_district['Count'].append(count)
+                    top_usr_by_st_district['District'].append(Name)
+                    top_usr_by_st_district['State'].append(state)
+                    top_usr_by_st_district['Year'].append(year)
+                    top_usr_by_st_district['Quarter'].append(int(quarter.strip('.json')))
+
+
+
+    top_st_usr_pincode_df = pd.DataFrame(top_usr_by_st_pincode)    
+    top_st_usr_pincode_df['State'] = top_st_usr_pincode_df['State'].str.title()
+    top_st_usr_district_df = pd.DataFrame(top_usr_by_st_district)    
+    top_st_usr_district_df['State'] = top_st_usr_district_df['State'].str.title()
+    
+    return top_st_usr_pincode_df,top_st_usr_district_df
+     
+
+    
+
+    

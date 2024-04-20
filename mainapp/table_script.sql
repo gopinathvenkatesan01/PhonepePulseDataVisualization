@@ -1,5 +1,4 @@
 
-CREATE SCHEMA Phonepe;
 
 CREATE TABLE Phonepe.state
 (

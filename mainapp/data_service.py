@@ -1,6 +1,8 @@
+from data_insertion import psql_client
 from utilities import amount_crores, formated
 import streamlit  as st
 import pandas as pd
+import psycopg2
 
 @st.cache_data
 def process_transaction_data(transaction_data_mp,state_id_map):
@@ -19,3 +21,57 @@ def process_user_data(user_data_mp,state_id_map):
     user_data_mp['id'] = user_data_mp['State'].apply(lambda x:state_id_map[x])
     user_data_mp['Registered Users'] = user_data_mp['Count'].apply(lambda x: formated(round(x)) if pd.notnull(x) else '')
     return user_data_mp
+
+def get_trans_method():
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = [
+        "transaction_method_key",
+        "transaction_method",
+        "transaction_count",
+        "transaction_amount",
+        "quarter",
+        "state_key",
+        "year_key",
+    ]
+    try:
+        cursor.execute("select * from phonepe.trans_method")
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        df = pd.DataFrame(
+            tuples_list,columns=coluumn_names
+        )
+        return df
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+            
+
+def get_users_location():
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = [
+        "user_location_key",
+        "district_name",
+        "users_count",
+        "app_openig",
+        "quarter",
+        "state_key",
+        "year_key",
+    ]
+    try:
+        cursor.execute("select * from phonepe.users_location")
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        usr_df = pd.DataFrame(
+            tuples_list,columns=coluumn_names
+        )
+        return usr_df
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
