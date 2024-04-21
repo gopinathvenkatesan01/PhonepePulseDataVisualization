@@ -10,37 +10,11 @@ from data_extraction import extract_data
 from data_service import (
     process_transaction_data,
     process_user_data,
-    get_trans_method,
+    get_transaction_data,
     get_users_location,
 )
 from data_insertion import init
 from utilities import formated
-
-html_code = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transactions Information</title>
-</head>
-<body>
-  <div class="container">
-    <h1 style="text-align: left; color: #720FE7 ;">Transactions</h1>
-    <div class="data-wrapper" style="margin-top: 20px;">
-      <h4><strong>All PhonePe transactions (UPI + Cards + Wallets)</strong> </h4>
-      <p style = "color: #05c3de; font-size:20px;">15,10,96,26,850</p>
-      <h4><strong>Total payment value</strong></h4>
-      <p style = "color: #05c3de; font-size:20px;"> ₹22,91,864Cr</p>
-      <h4> <strong>Avg. transaction value</strong></h4>
-      <p style = "color: #05c3de; font-size:20px;" > ¥1,517</p>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-
 
 
 def main():
@@ -112,10 +86,42 @@ def main():
             )
 
         with map_details:
-            st.write()
-            
-            st.markdown(html_code, unsafe_allow_html=True)
 
+            trans_data = get_transaction_data()
+            trans_df = trans_data.loc[
+                (trans_data["quarter"] == int(quarter))
+                & (trans_data["year"] == int(year))
+            ]
+            agg_trans_count_df = trans_df.agg({"transaction_count": ["sum"]})
+            trans_count = agg_trans_count_df.iloc[0,0]
+            agg_trnas_amt_count_df = trans_df.agg({"transaction_amount":["sum","mean"]})
+            sum_value = agg_trnas_amt_count_df.iloc[0, 0]  # Accessing sum value
+            mean_value = agg_trnas_amt_count_df.iloc[1, 0]  # Accessing mean value
+
+            st.header(":violet[" + metric + "]")
+            st.write()
+            html_code = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+      <div class="container">
+        <div class="data-wrapper" style="margin-top: 20px;">
+          <h4><strong>All PhonePe transactions (UPI + Cards + Wallets) for {quarter} {year}</strong> </h4>
+          <p style="color: #05c3de; font-size:20px;">{trans_count}</p>
+          <h4><strong>Total payment value</strong></h4>
+          <p style="color: #05c3de; font-size:20px;">{sum_value}</p>
+          <h4><strong>Avg. transaction value</strong></h4>
+          <p style="color: #05c3de; font-size:20px;">{mean_value}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+"""
+            st.markdown(html_code, unsafe_allow_html=True)
 
     else:
         map, map_details = st.columns([2, 1])
@@ -154,13 +160,36 @@ def main():
         with map_details:
             st.write()
             st.header(":violet[" + metric + "]")
-            st.subheader(
-                ":blue[Registered PhonePe users till Quarter"
-                + str(quarter)
-                + " "
-                + str(year)
-                + "]"
-            )
+            users_data = get_users_location()
+            users_df = users_data.loc[
+                (users_data["quarter"] == int(quarter))
+                & (users_data["year"] == int(year))
+            ]
+            agg_users_df = users_df.agg({"users_count": ["sum", "mean"]})
+            sum_value = agg_users_df.iloc[0, 0]  # Accessing sum value
+            mean_value = agg_users_df.iloc[1, 0]  # Accessing mean value
+
+            st.header(":violet[" + metric + "]")
+            html_code = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+      <div class="container">
+        <div class="data-wrapper" style="margin-top: 20px;">
+          <h4><strong>Registered PhonePe users till Q{quarter} {year}</strong> </h4>
+          <p style="color: #05c3de; font-size:20px;">{sum_value}</p>
+          <h4><strong>PhonePe app opens in Q{quarter} {year}</strong></h4>
+          <p style="color: #05c3de; font-size:20px;">{mean_value}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+"""
+            st.markdown(html_code, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":

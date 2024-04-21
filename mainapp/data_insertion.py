@@ -154,7 +154,6 @@ class data_insertion:
             agg_user = map_user_st()
             connection = psql_client()
             cursor = connection.cursor()
-
             for index, row in agg_user.iterrows():
                 # Get state_id
                 state_name = row["State"]
