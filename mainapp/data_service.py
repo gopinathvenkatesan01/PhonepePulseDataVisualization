@@ -105,7 +105,94 @@ def get_transaction_data():
         tuples_list = cursor.fetchall()
         cursor.close()
         df = pd.DataFrame(tuples_list, columns=coluumn_names)
-        return df 
+        return df
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+def agg_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["transaction_method", "sum"]
+    try:
+        cursor.execute(
+            f"""SELECT transaction_method, SUM(transaction_count) 
+    FROM phonepe.trans_method t
+    INNER JOIN phonepe.year y ON y.id = t.year_key
+    WHERE  quarter = %s AND y.year = %s
+    GROUP BY transaction_method 
+    ORDER BY transaction_method""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+def user_chart_data():
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = [
+        "user_location_key",
+        "district_name",
+        "users_count",
+        "app_openig",
+        "quarter",
+        "state_key",
+        "year_key",
+        "year",
+        "state_name"
+    ]
+    try:
+        cursor.execute(
+            """SELECT u.*,y.year,s.state_name FROM phonepe.users_location u 
+            INNER JOIN phonepe.year y ON y.id = u.year_key 
+            INNER JOIN phonepe.state s ON s.id = u.state_key """
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        df = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return df
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+def trans_chart_data():
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = [
+        "trans_location_id",
+        "district_name",
+        "total_transaction_count",
+        "total_transaction_amount",
+        "quarter",
+        "state_key",
+        "year_key",
+        "year",
+        "state_name"
+    ]
+    try:
+        cursor.execute(
+            """SELECT t.*,y.year,s.state_name FROM phonepe.trans_location t 
+            INNER JOIN phonepe.year y ON y.id = t.year_key 
+            INNER JOIN phonepe.state s ON s.id = t.state_key;"""
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        df = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return df
     except (psycopg2.Error, Exception) as e:
         print("An error occurred:", e)
     finally:

@@ -18,6 +18,9 @@ def formated(number):
 def amount_crores(number):
     return '₹'+'{:,.0f} Cr'.format(round(number / 10000000))
 
+def amount_rupees(number):
+    return'₹'+'{:,.0f}'.format(round(number))
+
 def formated(number):
     number_str = str(number)
     length = len(number_str)
