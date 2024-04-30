@@ -36,3 +36,13 @@ def formated(number):
             formatted_number = "," + formatted_number
             comma_counter = 0
     return formatted_number
+
+def format_amount(amount):
+    if amount >= 1_00_00_000:
+        return f'₹{amount/1_00_00_000:.2f} Cr'
+    elif amount >= 1_00_000:
+        return f'₹{amount/1_00_000:.2f} Lakh'
+    elif amount >= 1_000:
+        return f'₹{amount/1_000:.2f} K'
+    else:
+        return f'₹{amount:.2f}'

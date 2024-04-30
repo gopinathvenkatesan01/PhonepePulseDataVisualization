@@ -127,3 +127,25 @@ CREATE TABLE Phonepe.pincode_table
         ON DELETE NO ACTION
         NOT VALID
 );
+
+CREATE TABLE Phonepe.pincode_table_transaction
+(
+    pin_code_key character varying(256) NOT NULL,
+    pincode bigint,
+    total_transaction_count bigint,
+    total_transaction_amount bigint,
+    quarter bigint,
+    state_key bigint,
+    year_key bigint,
+    CONSTRAINT pincode_transcn_pky PRIMARY KEY (pin_code_key),
+    CONSTRAINT state_fky FOREIGN KEY (state_key)
+        REFERENCES Phonepe.state (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT year_fky FOREIGN KEY (year_key)
+        REFERENCES Phonepe.year (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+);

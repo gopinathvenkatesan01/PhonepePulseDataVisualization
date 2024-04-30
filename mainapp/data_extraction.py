@@ -233,7 +233,7 @@ def map_user_st():
         "Count": [],
         "App_Opening": [],
     }
-    
+
     mp_state_list = os.listdir(map_st_user_path)
     for state in mp_state_list:
         year_path = map_st_user_path + state + "/"
@@ -257,13 +257,14 @@ def map_user_st():
                     mp_st_user["App_Opening"].append(app_opening)
                     mp_st_user["Year"].append(year)
                     mp_st_user["Quarter"].append(int(quarter.strip(".json")))
-                    mp_st_user["District"].append(district) 
+                    mp_st_user["District"].append(district)
                 # except Exception as e:
                 # print(e)
                 # pass
     map_st_user_df = pd.DataFrame(mp_st_user)
     map_st_user_df["State"] = map_st_user_df["State"].str.title()
     return map_st_user_df
+
 
 @st.cache_data
 def map_transcation_st():
@@ -370,3 +371,77 @@ def top_usr_st():
     top_st_usr_district_df["State"] = top_st_usr_district_df["State"].str.title()
 
     return top_st_usr_pincode_df, top_st_usr_district_df
+
+
+@st.cache_data
+def top_transcn_st():
+    top_state_transaction_path = "D:/Learning/Projects/PhonepePulseDataVisualization/src/phonepeData/data/top/transaction/country/india/state/"
+
+    top_st_transaction_pincode = {
+        "State": [],
+        "Year": [],
+        "Quarter": [],
+        "Pincode": [],
+        "Transaction_count": [],
+        "Transaction_amount": [],
+    }
+    top_st_transaction_district = {
+        "State": [],
+        "Year": [],
+        "Quarter": [],
+        "District": [],
+        "Transaction_count": [],
+        "Transaction_amount": [],
+    }
+
+    state_list = os.listdir(top_state_transaction_path)
+
+    for state in state_list:
+        state_path = top_state_transaction_path + state + "/"
+        year_list = os.listdir(state_path)
+        for year in year_list:
+            path = state_path + year + "/"
+            quarter_list = os.listdir(path)
+            for quarter in quarter_list:
+                qtr_path = path + quarter
+                D = open(qtr_path, "r")
+                data = json.load(D)
+
+                for value in data["data"]["pincodes"]:
+                    Name = value["entityName"]
+                    count = value["metric"]["count"]
+                    amount = format_number(value["metric"]["amount"])
+                    top_st_transaction_pincode["Transaction_amount"].append(amount)
+                    top_st_transaction_pincode["Transaction_count"].append(count)
+                    top_st_transaction_pincode["Pincode"].append(Name)
+                    top_st_transaction_pincode["State"].append(state)
+                    top_st_transaction_pincode["Year"].append(year)
+                    top_st_transaction_pincode["Quarter"].append(
+                        int(quarter.strip(".json"))
+                    )
+
+                for value in data["data"]["districts"]:
+                    Name = value["entityName"]
+                    count = value["metric"]["count"]
+                    amount = format_number(value["metric"]["amount"])
+                    top_st_transaction_district["Transaction_amount"].append(amount)
+                    top_st_transaction_district["Transaction_count"].append(count)
+                    top_st_transaction_district["District"].append(Name)
+                    top_st_transaction_district["State"].append(state)
+                    top_st_transaction_district["Year"].append(year)
+                    top_st_transaction_district["Quarter"].append(
+                        int(quarter.strip(".json"))
+                    )
+
+    top_st_transcation_pincode_df = pd.DataFrame(top_st_transaction_pincode)
+    top_st_transcation_pincode_df["State"] = top_st_transcation_pincode_df[
+        "State"
+    ].str.title()
+    top_st_transcation_pincode_df.fillna(0, inplace=True)
+    top_st_transcation_district_df = pd.DataFrame(top_st_transaction_district)
+    top_st_transcation_district_df["State"] = top_st_transcation_district_df[
+        "State"
+    ].str.title()
+    top_st_transcation_district_df.fillna(0, inplace=True)
+
+    return top_st_transcation_pincode_df, top_st_transcation_district_df

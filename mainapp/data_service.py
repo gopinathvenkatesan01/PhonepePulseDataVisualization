@@ -150,7 +150,7 @@ def user_chart_data():
         "state_key",
         "year_key",
         "year",
-        "state_name"
+        "state_name",
     ]
     try:
         cursor.execute(
@@ -181,7 +181,7 @@ def trans_chart_data():
         "state_key",
         "year_key",
         "year",
-        "state_name"
+        "state_name",
     ]
     try:
         cursor.execute(
@@ -193,6 +193,221 @@ def trans_chart_data():
         cursor.close()
         df = pd.DataFrame(tuples_list, columns=coluumn_names)
         return df
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# top 10 states_transcn
+def top_states_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["state_name", "sum"]
+    try:
+        cursor.execute(
+            f"""SELECT s.state_name, SUM(tl.total_transaction_count)
+FROM phonepe.trans_location tl 
+INNER JOIN phonepe.year y ON y.id = tl.year_key 
+INNER JOIN phonepe.state s ON s.id = tl.state_key
+WHERE quarter = %s AND y.year = %s
+GROUP BY s.state_name
+ORDER BY SUM(tl.total_transaction_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# top 10 district transcn
+def top_districts_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["district_name", "sum"]
+    try:
+        cursor.execute(
+            f"""SELECT  tl.district_name, SUM(tl.total_transaction_count)
+FROM phonepe.trans_location tl 
+INNER JOIN phonepe.year y ON y.id = tl.year_key 
+INNER JOIN phonepe.state s ON s.id = tl.state_key
+WHERE quarter = %s AND y.year = %s 
+GROUP BY tl.district_name
+ORDER BY SUM(tl.total_transaction_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# top 10 pincode transaction
+
+
+def top_pincodes_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["pincode", "transaction_amount"]
+    try:
+        cursor.execute(
+            f"""SELECT  pt.pincode, SUM(pt.total_transaction_count)
+FROM phonepe.pincode_table_transaction pt 
+INNER JOIN phonepe.year y ON y.id = pt.year_key 
+INNER JOIN phonepe.state s ON s.id = pt.state_key
+WHERE quarter = %s AND y.year = %s 
+GROUP BY pt.pincode
+ORDER BY SUM(pt.total_transaction_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+def top_states_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["state_name", "transaction_amount"]
+    try:
+        cursor.execute(
+            f"""SELECT s.state_name, SUM(tl.total_transaction_count)
+FROM phonepe.trans_location tl 
+INNER JOIN phonepe.year y ON y.id = tl.year_key 
+INNER JOIN phonepe.state s ON s.id = tl.state_key
+WHERE quarter = %s AND y.year = %s 
+GROUP BY s.state_name
+ORDER BY SUM(tl.total_transaction_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+# top sistricts by transcn
+def top_districts_transcn(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["district_name", "transaction_amount"]
+    try:
+        cursor.execute(
+            f"""SELECT  tl.district_name, SUM(tl.total_transaction_count)
+FROM phonepe.trans_location tl 
+INNER JOIN phonepe.year y ON y.id = tl.year_key 
+INNER JOIN phonepe.state s ON s.id = tl.state_key
+WHERE quarter = 1 AND y.year = 2018 
+GROUP BY tl.district_name
+ORDER BY SUM(tl.total_transaction_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        agg_trans["district_name"] = agg_trans["district_name"].str.title()
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+# top district by user
+def top_districts_usr(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["district_name", "user_count"]
+    try:
+        cursor.execute(
+            f"""SELECT  ul.district_name, SUM(ul.users_count)
+FROM phonepe.users_location ul 
+INNER JOIN phonepe.year y ON y.id = ul.year_key 
+INNER JOIN phonepe.state s ON s.id = ul.state_key
+WHERE quarter = %s AND y.year = %s 
+GROUP BY ul.district_name
+ORDER BY SUM(ul.users_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        agg_trans["district_name"] = agg_trans["district_name"].str.title()
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+
+# Top users by state
+def top_states_user(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["state_name", "user_count"]
+    try:
+        cursor.execute(
+            f"""SELECT  s.state_name, SUM(ul.users_count)
+FROM phonepe.users_location ul 
+INNER JOIN phonepe.year y ON y.id = ul.year_key 
+INNER JOIN phonepe.state s ON s.id = ul.state_key
+WHERE quarter = %s AND y.year = %s 
+GROUP BY s.state_name
+ORDER BY SUM(ul.users_count) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
+    except (psycopg2.Error, Exception) as e:
+        print("An error occurred:", e)
+    finally:
+        if conn:
+            conn.close()
+      
+#Pin Code   by user
+def top_pincodes_user(quarter, year):
+    conn = psql_client()
+    cursor = conn.cursor()
+    coluumn_names = ["pincode", "transaction_amount"]
+    try:
+        cursor.execute(
+            f"""SELECT  pt.pincode, SUM(pt.total_registered_user)
+FROM phonepe.pincode_table pt 
+INNER JOIN phonepe.year y ON y.id = pt.year_key 
+INNER JOIN phonepe.state s ON s.id = pt.state_key
+WHERE quarter = 1 AND y.year = 2018 
+GROUP BY pt.pincode
+ORDER BY SUM(pt.total_registered_user) DESC LIMIT 10;""",
+            (int(quarter), int(year)),
+        )
+        tuples_list = cursor.fetchall()
+        cursor.close()
+        agg_trans = pd.DataFrame(tuples_list, columns=coluumn_names)
+        return agg_trans
     except (psycopg2.Error, Exception) as e:
         print("An error occurred:", e)
     finally:

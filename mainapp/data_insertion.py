@@ -8,6 +8,7 @@ from data_extraction import (
     map_transcation_st,
     arrgregated_usr_st,
     top_usr_st,
+    top_transcn_st
 )
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -24,9 +25,9 @@ def psql_client():
 
 def init():
     # Create the 'phonepe' database if it doesn't exist
-    # data_insertion.create_database("phonepe")
-    # data_insertion.configure_database()
-    # data_insertion.insert_data()
+    data_insertion.create_database("phonepe")
+    data_insertion.configure_database()
+    data_insertion.insert_data()
     print("init")
 
 
@@ -47,7 +48,7 @@ class data_insertion:
 
             # Extract database names from the fetched rows
             database_names = [db[0] for db in rows]
-            st.write(database_names)
+            # st.write(database_names)
 
             # Check if the tenant_id exists in the fetched database names
             if tenant_id in database_names:
@@ -302,6 +303,49 @@ class data_insertion:
                                 '{uuid.uuid4()}',
                                 '{row['Pincode']}',
                                  {row['Count']},
+                                {row['Quarter']}, 
+                                {state_id}, 
+                                {year_id})"""
+                )
+                connection.commit()
+        except (psycopg2.Error, Exception) as e:
+            st.write("An error occurred:", e)
+        finally:
+            if connection:
+                connection.close()
+# transaction_pincode_insert
+        try:
+            trans_by_pincode, trnas_by_district = top_transcn_st()
+            connection = psql_client()
+            cursor = connection.cursor()
+
+            for index, row in trans_by_pincode.iterrows():
+                # Get state_id
+                state_name = row["State"]
+                cursor.execute(
+                    f"SELECT id FROM phonepe.state WHERE state_name='{state_name}'"
+                )
+                state_id = cursor.fetchone()[0]
+                cursor.fetchall()
+                # Get year_id
+                year_value = row["Year"]
+                cursor.execute(f"SELECT id FROM phonepe.year WHERE year={year_value}")
+                year_id = cursor.fetchone()[0]
+                cursor.fetchall()  # Fetch all results to clear the unread result
+                # Insert transaction data
+                cursor.execute(
+                    f"""INSERT INTO phonepe.pincode_table_transaction(pin_code_key,
+                               pincode, 
+                               total_transaction_count,
+                               total_transaction_amount,
+                               quarter, 
+                               state_key, 
+                               year_key)
+	                           VALUES (
+                                '{uuid.uuid4()}',
+                                '{row['Pincode']}',
+                                 {row['Transaction_count']},
+                                 {row['Transaction_amount']},
                                 {row['Quarter']}, 
                                 {state_id}, 
                                 {year_id})"""
