@@ -26,10 +26,11 @@ from data_service import (
     top_pincodes_transcn,
 )
 from data_insertion import init
-from utilities import amount_crores, amount_rupees, formated, format_amount
+from utilities import amount_crores, amount_rupees, clone_phonepe_data, formated, format_amount
 
 
 def main():
+    clone_phonepe_data()
     if "firstrun" not in st.session_state:
         st.session_state.firstrun = True
 
@@ -37,6 +38,7 @@ def main():
     transaction_data_mp, user_data_mp, india_state, state_id_map = extract_data()
     if st.session_state.firstrun:
         # st.balloons()
+        
         init()
         st.session_state.firstrun = False
 
@@ -86,7 +88,7 @@ def main():
                 },
                 mapbox_style="carto-positron",
                 center={"lat": 24, "lon": 78},
-                color_continuous_scale=px.colors.diverging.PuOr,
+                color_continuous_scale=px.colors.cyclical.Twilight,
                 color_continuous_midpoint=0,
                 zoom=3.6,
                 width=900,
@@ -186,7 +188,7 @@ def main():
                 hover_name="State",
                 mapbox_style="carto-positron",
                 center={"lat": 24, "lon": 78},
-                color_continuous_scale=px.colors.diverging.PuOr,
+                color_continuous_scale=px.colors.cyclical.Twilight,
                 color_continuous_midpoint=0,
                 zoom=3.6,
                 width=900,
@@ -337,7 +339,7 @@ def main():
 
         # Plot the selected area using Geopandas' plot function
         stfig, ax = plt.subplots(figsize=(90 / 10, 70 / 10))
-        jk.plot(ax=ax, facecolor="green", edgecolor="blue")
+        jk.plot(ax=ax, facecolor="orange", edgecolor="black")
         ax.axis("off")  # Remove the axis ticks and labels
 
         # user_chart_data
